@@ -24,24 +24,6 @@ var blogClient = new insp("http://leppucomics.com//", {
 	}
 });
 
-var FTP = require("ftp");
-var ftpClient = new FTP();
-ftpClient.on("ready", function() {
-	console.log("FTP is ready on " + process.env.FTP_HOST + ".");
-});
-
-ftpClient.connect({
-	host: process.env.FTP_HOST,
-	user: process.env.FTP_USER,
-	password: process.env.FTP_PASS
-});
-
-function sendFTP(content, path) {
-	ftpClient.put(content, path, function(err) {
-		console.log("FTP upload finished.");
-	});
-}
-
 var mysql = require("mysql"); //MySQL API
 var con = mysql.createPool({
 	host: process.env.MYSQL_HOST,
@@ -493,7 +475,6 @@ function handleFetch(comicAbrv, scrapeClient) {
 
 			fs.writeFile(dataFile, updateTime + eol + updateTitle + eol + panelSrc, function() { //change the file data
 				console.log("Updated file.");
-				//sendFTP(fs.readFileSync(dataFile), "htdocs/update.txt");
 			}); //change pracedata.txt
 
 			var cmd = "SELECT * FROM " + tableName + ";";
