@@ -153,7 +153,7 @@ mailListener.on("mail", function(mail, seqno, attributes) {
 					from[0],
 					"You may have misspelled your email title",
 					"The system has detected a possible typo in your command! " +
-					"You wrote " + subUnsub + "instead of \"subscribe\" or \"unsubscribe\"." +
+					"You wrote " + subUnsub + " instead of \"subscribe\" or \"unsubscribe\"." +
 					"<br>This is an automated response. Consider changing the title and re-sending if the matter is urgent."
 				);
 			else //it's not a typo: forward it to admin
@@ -361,11 +361,11 @@ var landingPage = "./index.html"; //the page you get when you request "/"
 
 http.createServer(function(request, response) { //on every request to the server:
 	var url = request.url;
-	console.log(url);
 	switch(url.toLowerCase()) {
 		case "/":
 			response.writeHead(200, {"Content-Type": "text/html", "Access-Control-Allow-Origin": "*"});
 			response.end(fs.readFileSync(landingPage).toString()); //serve the requseted file
+			break;
 
 		case "/favicon.ico":
 			response.writeHead(200, {"Content-Type": "image/x-icon"});
@@ -404,6 +404,8 @@ http.createServer(function(request, response) { //on every request to the server
 				response.end(fs.readFileSync("." + url).toString()); //serve the requseted file
 			}
 			catch(error) {
+				response.writeHead(500, {"Content-Type": "text/html", "Access-Control-Allow-Origin": "*"});
+				response.end("An error occured.<br>" + error); //serve the requseted file
 				console.log(error.name);
 				console.log(error.message);
 			}
