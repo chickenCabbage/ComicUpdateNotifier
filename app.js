@@ -5,19 +5,19 @@ var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
 var insp = require("node-metainspector");
-var praceClient = new insp("http://praguerace.com/", { //crawling config
+var pragueRaceClient = new insp("http://praguerace.com/", { //crawling config
 	timeout: 99999, //maximal reply time in ms. 99999 ~= 100 seconds, that's not going to happen anytime soon
 	headers: { //custom headers for the request
 		"User-Agent": "praceScraper/update.js" //user agent
 	}
 });
-var tigerClient = new insp("http://tigertigercomic.com/", {
+var tigerTigerClient = new insp("http://tigertigercomic.com/", {
 	timeout: 99999,
 	headers: {
 		"User-Agent": "tigerScraper/update.js"
 	}
 });
-var blogClient = new insp("http://leppucomics.com//", {
+var leppusBlogClient = new insp("http://leppucomics.com//", {
 	timeout: 99999,
 	headers: {
 		"User-Agent": "blogScraper/update.js"
@@ -396,7 +396,7 @@ http.createServer(function(request, response) { //on every request to the server
 		case "/pr":
 		case "/prague%20race":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
-			response.end(fs.readFileSync("./data/pracedata.txt").toString()); //serve the requseted file
+			response.end(fs.readFileSync("./data/PragueRaceData.txt").toString()); //serve the requseted file
 			break;
 
 		case "/tigertiger":
@@ -406,7 +406,7 @@ http.createServer(function(request, response) { //on every request to the server
 		case "/tiger,%20tiger":
 		case "/tiger,%20tiger!":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
-			response.end(fs.readFileSync("./data/ttigerdata.txt").toString()); //serve the requseted file
+			response.end(fs.readFileSync("./data/TigerTigerData.txt").toString()); //serve the requseted file
 			break;
 
 		case "/lepppusblog":
@@ -414,7 +414,7 @@ http.createServer(function(request, response) { //on every request to the server
 		case "/leppus%27s%20blog":
 		case "/leppu":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
-			response.end(fs.readFileSync("./data/leppudata.txt").toString()); //serve the requseted file
+			response.end(fs.readFileSync("./data/LeppusBlogData.txt").toString()); //serve the requseted file
 			break;
 
 		default:
@@ -570,24 +570,24 @@ function handleScrapeClientError(error, comicAbrv, scrapeClient) {
 	);
 } //end handleScrapeClientError()
 
-praceClient.on("fetch", function() {
-	handleFetch("prace", praceClient)
+pragueRaceClient.on("fetch", function() {
+	handleFetch("prace", pragueRaceClient)
 });
-tigerClient.on("fetch", function() {
-	handleFetch("ttiger", tigerClient)
+tigerTigerClient.on("fetch", function() {
+	handleFetch("ttiger", tigerTigerClient)
 });
-blogClient.on("fetch", function() {
-	handleFetch("leppu", blogClient)
+leppusBlogClient.on("fetch", function() {
+	handleFetch("leppu", leppusBlogClient)
 });
 
-praceClient.on("error", function(error) {
-	handleScrapeClientError(error, "prace", praceClient)
+pragueRaceClient.on("error", function(error) {
+	handleScrapeClientError(error, "prace", pragueRaceClient)
 });
-tigerClient.on("error", function(error) {
-	handleScrapeClientError(error, "ttiger", tigerClient)
+tigerTigerClient.on("error", function(error) {
+	handleScrapeClientError(error, "ttiger", tigerTigerClient)
 });
-blogClient.on("error", function(error) {
-	handleScrapeClientError(error, "leppu", blogClient)
+leppusBlogClient.on("error", function(error) {
+	handleScrapeClientError(error, "leppu", leppusBlogClient)
 });
 
 if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's less than a minute
@@ -603,15 +603,15 @@ function keepAlive() {
 	http.request(options).end();
 } //end keepAlive()
 
-praceClient.fetch(); //initialization
-tigerClient.fetch();
-blogClient.fetch();
+pragueRaceClient.fetch(); //initialization
+tigerTigerClient.fetch();
+leppusBlogClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
-	praceClient.fetch();
-	tigerClient.fetch();
-	blogClient.fetch();
+	pragueRaceClient.fetch();
+	tigerTigerClient.fetch();
+	leppusBlogClient.fetch();
 	counter ++;
 	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) { //if you've gone for x minutes without a keepAlive() call
 		counter = 0;
