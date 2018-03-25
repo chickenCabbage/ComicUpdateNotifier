@@ -212,7 +212,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 		case "praguerace":
 		case "prace":
 		case "pr":
-			comicTable = "praceReaders";
+			comicTable = "PragueRaceReaders";
 			comicName = "Prague Race";
 			break;
 
@@ -221,7 +221,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 		case "tigertiger!":
 		case "tigertiger":
 		case "tt":
-			comicTable = "tigerReaders";
+			comicTable = "TigerTigerReaders";
 			comicName = "Tiger, Tiger";
 			break;
 
@@ -229,7 +229,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 		case "leppus blog":
 		case "leppu":
 		case "blog":
-			comicTable = "blogReaders";
+			comicTable = "LeppusBlogReaders";
 			comicName = "Leppu's blog";
 			break;
 
@@ -438,7 +438,7 @@ function handleFetch(comicAbrv, scrapeClient) {
 		case "prace":
 			dataFile = "./data/pracedata.txt";
 			comicName = "Prague Race";
-			tableName = "praceReaders";
+			tableName = "PragueRaceReaders";
 			emailPage = "./emails/praceUpdateEmail.html"
 			realTitle = scrapeClient.title;
 			break;
@@ -446,7 +446,7 @@ function handleFetch(comicAbrv, scrapeClient) {
 		case "ttiger":
 			dataFile = "./data/ttigerdata.txt";
 			comicName = "Tiger, Tiger";
-			tableName = "tigerReaders";
+			tableName = "TigerTigerReaders";
 			emailPage = "./emails/ttigerUpdateEmail.html";
 			realTitle = scrapeClient.title;
 			break;
@@ -454,7 +454,7 @@ function handleFetch(comicAbrv, scrapeClient) {
 		case "leppu":
 			dataFile = "./data/leppudata.txt";
 			comicName = "Leppu's blog";
-			tableName = "blogReaders";
+			tableName = "LeppusBlogReaders";
 			emailPage = "./emails/leppuUpdateEmail.html";
 			realTitle = scrapeClient.parsedDocument(".cc-blogtitle").html();
 			realTitle = realTitle.split(">")[1].toString().split("<")[0];
