@@ -440,7 +440,6 @@ function handleFetch(comicName, scrapeClient) {
 			tableName = "PragueRaceReaders";
 			emailPage = "./emails/PragueRaceUpdateEmail.html"
 			realTitle = scrapeClient.title;
-			realTitle = realTitle.trim();
 			break;
 
 		case "Tiger, Tiger":
@@ -448,7 +447,6 @@ function handleFetch(comicName, scrapeClient) {
 			tableName = "TigerTigerReaders";
 			emailPage = "./emails/TigerTigerUpdateEmail.html";
 			realTitle = scrapeClient.title;
-			realTitle = realTitle.trim();
 			break;
 
 		case "Leppu's blog":
@@ -456,8 +454,7 @@ function handleFetch(comicName, scrapeClient) {
 			tableName = "LeppusBlogReaders";
 			emailPage = "./emails/LeppusBlogUpdateEmail.html";
 			realTitle = scrapeClient.parsedDocument(".cc-blogtitle").html();
-			realTitle = realTitle.split(">")[1].toString().split("<")[0];
-			realTitle = realTitle.trim();
+			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
 	}
 	try {
