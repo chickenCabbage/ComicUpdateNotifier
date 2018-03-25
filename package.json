@@ -1,6 +1,6 @@
 {
     "name": "prun",
-    "version": "1.6",
+    "version": "1.6.1",
     "description": "Notifies user when comics update.",
     "main": "app.js",
     "scripts": {
@@ -20,7 +20,7 @@
     "author": "Alon Shiboleth",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/chickenCabbage/PRUN-V5/issues"
+        "url": "https://github.com/chickenCabbage/ComicUpdateNotifier/issues"
     },
-    "homepage": "https://github.com/chickenCabbage/PRUN-V5"
+    "homepage": "https://github.com/chickenCabbage/ComicUpdateNotifier"
 }
