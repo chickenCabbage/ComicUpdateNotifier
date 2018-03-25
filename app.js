@@ -591,13 +591,13 @@ blogClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
-	console.log(process.env.KEEPALIVE);
+	console.log(process.env.KEEP_ALIVE_TIME);
 	console.log(counter * (scrapeIntervalTime / (60 * 1000))); //debugs
 	praceClient.fetch();
 	tigerClient.fetch();
 	blogClient.fetch();
 	counter ++;
-	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEPALIVE) { //if you've gone for 27 minutes without a keepAlive() call
+	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) { //if you've gone for x minutes without a keepAlive() call
 		counter = 0;
 		keepAlive();
 	}
