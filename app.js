@@ -1,6 +1,6 @@
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 0.5 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
@@ -372,6 +372,11 @@ http.createServer(function(request, response) { //on every request to the server
 			response.end(fs.readFileSync("./favicon.ico").toString()); //serve the requseted file
 			break;
 
+		case "/keepAlive":
+		case "./keepAlive":
+			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
+			response.end("OK"); //serve the requseted file
+
 		case "/praguerace":
 		case "/prace":
 		case "/pr":
@@ -578,7 +583,6 @@ function keepAlive() {
 		path: "/keepAlive"
 	};
 	http.request(options).end();
-	console.log("ADDRESS = " + process.env.ADDRESS);
 } //end keepAlive()
 
 praceClient.fetch(); //initialization
@@ -591,9 +595,8 @@ setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	tigerClient.fetch();
 	blogClient.fetch();
 	counter ++;
-	//if you've waited for 
-	if(counter * (scrapeIntervalTime / (60 * 1000)) > 2) { //if you've gone for 27 minutes without a keepAlive() call
+	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEPALIVE) { //if you've gone for 27 minutes without a keepAlive() call
 		counter = 0;
-		keepAlive(); /////////TESTING KEEPALIVE CHANGE INTERVALTIME AND THE IF BOOL
+		keepAlive();
 	}
 }, scrapeIntervalTime);
