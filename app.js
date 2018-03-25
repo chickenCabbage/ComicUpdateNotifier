@@ -474,11 +474,8 @@ function handleFetch(comicName, scrapeClient) {
 
 				case "Tiger, Tiger":
 					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
-					console.log("updateTime = " + updateTime);
 					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
-					console.log("updateTime = " + updateTime);
 					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
-					console.log("updateTime = " + updateTime);
 					panelSrc = scrapeClient.images[1];
 					break;
 
