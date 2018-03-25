@@ -372,10 +372,11 @@ http.createServer(function(request, response) { //on every request to the server
 			response.end(fs.readFileSync("./favicon.ico").toString()); //serve the requseted file
 			break;
 
-		case "/keepAlive":
-		case "./keepAlive":
+		case "/keepalive":
+		case "./keepalive":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
 			response.end("OK"); //serve the requseted file
+		break;
 
 		case "/praguerace":
 		case "/prace":
