@@ -432,30 +432,27 @@ http.createServer(function(request, response) { //on every request to the server
 }).listen(port); //end http.createServer()
 console.log("Listening on port " + port + ".");
 
-function handleFetch(comicAbrv, scrapeClient) {
-	var dataFile = "", comicName = "", tableName = "", emailPage = "", realTitle = "";
-	switch(comicAbrv) {
-		case "prace":
-			dataFile = "./data/pracedata.txt";
-			comicName = "Prague Race";
+function handleFetch(comicName, scrapeClient) {
+	var dataFile = "", tableName = "", emailPage = "", realTitle = "";
+	switch(comicName) {
+		case "Prague Race":
+			dataFile = "./data/PragueRaceData.txt";
 			tableName = "PragueRaceReaders";
-			emailPage = "./emails/praceUpdateEmail.html"
+			emailPage = "./emails/PragueRaceUpdateEmail.html"
 			realTitle = scrapeClient.title;
 			break;
 
-		case "ttiger":
-			dataFile = "./data/ttigerdata.txt";
-			comicName = "Tiger, Tiger";
+		case "Tiger, Tiger":
+			dataFile = "./data/TigerTigerData.txt";
 			tableName = "TigerTigerReaders";
-			emailPage = "./emails/ttigerUpdateEmail.html";
+			emailPage = "./emails/TigerTigerUpdateEmail.html";
 			realTitle = scrapeClient.title;
 			break;
 
-		case "leppu":
-			dataFile = "./data/leppudata.txt";
-			comicName = "Leppu's blog";
+		case "Leppu's blog":
+			dataFile = "./data/LeppusBlogData.txt";
 			tableName = "LeppusBlogReaders";
-			emailPage = "./emails/leppuUpdateEmail.html";
+			emailPage = "./emails/LeppusBlogUpdateEmail.html";
 			realTitle = scrapeClient.parsedDocument(".cc-blogtitle").html();
 			realTitle = realTitle.split(">")[1].toString().split("<")[0];
 			break;
@@ -467,15 +464,15 @@ function handleFetch(comicAbrv, scrapeClient) {
 			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
 
 			var updateTime = "", panelSrc = "", leppuComment = "";
-			switch(comicAbrv) { //get each comic according to its site layout
-				case "prace":
+			switch(comicName) { //get each comic's data according to its site layout
+				case "Prague Race":
 					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
 					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
 					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
 					panelSrc = scrapeClient.images[0];
 					break;
 
-				case "ttiger":
+				case "Tiger, Tiger":
 					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
 					console.log("updateTime = " + updateTime);
 					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
@@ -485,7 +482,7 @@ function handleFetch(comicAbrv, scrapeClient) {
 					panelSrc = scrapeClient.images[1];
 					break;
 
-				case "leppu":
+				case "Leppu's blog":
 					leppuComment = scrapeClient.parsedDocument(".cc-blogcontent").html();
 					leppuComment = leppuComment.split("<br>");
 					leppuComment = leppuComment[leppuComment.length - 1];
@@ -542,22 +539,7 @@ function handleFetch(comicAbrv, scrapeClient) {
 	}
 } //end handleFetch()
 
-function handleScrapeClientError(error, comicAbrv, scrapeClient) {
-	var comicName = "";
-	switch(comicAbrv) {
-		case "prace":
-			comicName = "Prague Race";
-			break;
-
-		case "ttiger":
-			comicName = "Tiger, Tiger";
-			break;
-
-		case "leppu":
-			comicName = "Leppu's blog";
-			break;
-	}
-
+function handleScrapeClientError(error, comicName, scrapeClient) {
 	console.log(comicName + "'s client threw an error!");
 	console.log(error);
 	sendMail(
@@ -571,23 +553,23 @@ function handleScrapeClientError(error, comicAbrv, scrapeClient) {
 } //end handleScrapeClientError()
 
 pragueRaceClient.on("fetch", function() {
-	handleFetch("prace", pragueRaceClient)
+	handleFetch("Prague Race", pragueRaceClient)
 });
 tigerTigerClient.on("fetch", function() {
-	handleFetch("ttiger", tigerTigerClient)
+	handleFetch("Tiger, Tiger", tigerTigerClient)
 });
 leppusBlogClient.on("fetch", function() {
-	handleFetch("leppu", leppusBlogClient)
+	handleFetch("Leppu's blog", leppusBlogClient)
 });
 
 pragueRaceClient.on("error", function(error) {
-	handleScrapeClientError(error, "prace", pragueRaceClient)
+	handleScrapeClientError(error, "Prague Race", pragueRaceClient)
 });
 tigerTigerClient.on("error", function(error) {
-	handleScrapeClientError(error, "ttiger", tigerTigerClient)
+	handleScrapeClientError(error, "Tiger, Tiger", tigerTigerClient)
 });
 leppusBlogClient.on("error", function(error) {
-	handleScrapeClientError(error, "leppu", leppusBlogClient)
+	handleScrapeClientError(error, "Leppu's blog", leppusBlogClient)
 });
 
 if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's less than a minute
