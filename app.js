@@ -440,6 +440,7 @@ function handleFetch(comicName, scrapeClient) {
 			tableName = "PragueRaceReaders";
 			emailPage = "./emails/PragueRaceUpdateEmail.html"
 			realTitle = scrapeClient.title;
+			realTitle = realTitle.trim();
 			break;
 
 		case "Tiger, Tiger":
@@ -447,6 +448,7 @@ function handleFetch(comicName, scrapeClient) {
 			tableName = "TigerTigerReaders";
 			emailPage = "./emails/TigerTigerUpdateEmail.html";
 			realTitle = scrapeClient.title;
+			realTitle = realTitle.trim();
 			break;
 
 		case "Leppu's blog":
@@ -455,13 +457,11 @@ function handleFetch(comicName, scrapeClient) {
 			emailPage = "./emails/LeppusBlogUpdateEmail.html";
 			realTitle = scrapeClient.parsedDocument(".cc-blogtitle").html();
 			realTitle = realTitle.split(">")[1].toString().split("<")[0];
+			realTitle = realTitle.trim();
 			break;
 	}
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1]; //read the current data
-		console.log("updateTitle = \"" + updateTitle.trim() + "\"");
-		console.log("realTitle = \"" + realTitle.trim() + "\"");
-		console.log(realTitle.trim() == updateTitle.trim());
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
 			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
