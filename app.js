@@ -591,6 +591,8 @@ blogClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
+	console.log(process.env.KEEPALIVE);
+	console.log(counter * (scrapeIntervalTime / (60 * 1000))); //debugs
 	praceClient.fetch();
 	tigerClient.fetch();
 	blogClient.fetch();
