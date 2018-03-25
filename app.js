@@ -578,6 +578,7 @@ function keepAlive() {
 		path: "/keepAlive"
 	};
 	http.request(options).end();
+	console.log("ADDRESS = " + process.env.ADDRESS);
 } //end keepAlive()
 
 praceClient.fetch(); //initialization
@@ -590,8 +591,9 @@ setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	tigerClient.fetch();
 	blogClient.fetch();
 	counter ++;
-	if(counter * (scrapeIntervalTime / (60 * 1000)) == process.env.KEEP_ALIVE_TIME) { //if you've gone for 30 minutes without a keepAlive() call
+	//if you've waited for 
+	if(counter * (scrapeIntervalTime / (60 * 1000)) > 5) { //if you've gone for 27 minutes without a keepAlive() call
 		counter = 0;
-		keepAlive();
+		keepAlive(); /////////TESTING KEEPALIVE
 	}
 }, scrapeIntervalTime);
