@@ -1,6 +1,6 @@
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 0.5 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
@@ -557,14 +557,14 @@ blogClient.on("fetch", function() {
 	handleFetch("leppu", blogClient)
 });
 
-praceClient.on("error", function() {
+praceClient.on("error", function(error) {
 	handleScrapeClientError(error, "prace", praceClient)
 });
-tigerClient.on("error", function() {
-	handleScrapeClientError("ttiger", tigerClient)
+tigerClient.on("error", function(error) {
+	handleScrapeClientError(error, "ttiger", tigerClient)
 });
-blogClient.on("error", function() {
-	handleScrapeClientError("leppu", blogClient)
+blogClient.on("error", function(error) {
+	handleScrapeClientError(error, "leppu", blogClient)
 });
 
 if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's less than a minute
@@ -592,8 +592,8 @@ setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	blogClient.fetch();
 	counter ++;
 	//if you've waited for 
-	if(counter * (scrapeIntervalTime / (60 * 1000)) > 5) { //if you've gone for 27 minutes without a keepAlive() call
+	if(counter * (scrapeIntervalTime / (60 * 1000)) > 2) { //if you've gone for 27 minutes without a keepAlive() call
 		counter = 0;
-		keepAlive(); /////////TESTING KEEPALIVE
+		keepAlive(); /////////TESTING KEEPALIVE CHANGE INTERVALTIME AND THE IF BOOL
 	}
 }, scrapeIntervalTime);
