@@ -459,9 +459,9 @@ function handleFetch(comicName, scrapeClient) {
 	}
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1]; //read the current data
-		console.log("updateTitle = " + updateTitle);
-		console.log("realTitle = " + realTitle);
-		console.log(realTitle == updateTitle);
+		console.log("updateTitle = \"" + updateTitle + "\"");
+		console.log("realTitle = \"" + realTitle + "\"");
+		console.log(realTitle.toString() == updateTitle.toString());
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
 			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
