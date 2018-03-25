@@ -6,19 +6,19 @@ var fs = require("fs"); //file IO
 
 var insp = require("node-metainspector");
 var praceClient = new insp("http://praguerace.com/", { //crawling config
-	timeout: 9999, //maximal reply time in ms. 9999 ~= 10 seconds
+	timeout: 99999, //maximal reply time in ms. 99999 ~= 100 seconds, that's not going to happen anytime soon
 	headers: { //custom headers for the request
 		"User-Agent": "praceScraper/update.js" //user agent
 	}
 });
 var tigerClient = new insp("http://tigertigercomic.com/", {
-	timeout: 9999,
+	timeout: 99999,
 	headers: {
 		"User-Agent": "tigerScraper/update.js"
 	}
 });
 var blogClient = new insp("http://leppucomics.com//", {
-	timeout: 9999,
+	timeout: 99999,
 	headers: {
 		"User-Agent": "blogScraper/update.js"
 	}
@@ -61,8 +61,21 @@ function sendMail(recip, subject, content) {
 		}
 	});
 	transporter.sendMail(mailOptions, function(error, info){
-		if(error) console.log("Error in mailing!\n" + error);
-		console.log("Email sent.");
+		if(error) {
+			console.log("Error in mailing!");
+			console.log(error);
+			sendMail(
+				process.env.ADMIN_ADDR,
+				"An error has occured!",
+				"Couldn't send email!<br><br>" +
+				"Email to be sent:<br>" + 
+				JSON.stringify(info).toString() + 
+				"<br><br>Error type: " + error.name +
+				"<br>Error message: " + error.message +
+				"<br>Full error:<br><br>" + JSON.stringify(error).toString()
+			);
+		}
+		else console.log("Email sent.");
 	});
 }//end sendMail()
 console.log("SMTP prepared as " + process.env.MAILER_USERNAME + ".");
@@ -258,7 +271,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 						from[0],
 						"An error occured!",
 						"Please resend the email, you weren't been added or removed from the list. Here's what we know:<br>" +
-						addReject + "<br>" +
+						addReject.toString() + "<br>" +
 						"You tried to " + subUnsub + " to/from " + comicName + "." + 
 						"<br><br>If this continues and you aren't contacted by an admin, please send a non-command email" +
 						" or reply to this one. You can contact the main admin personally at " +
@@ -269,7 +282,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 						"An error has occured in the update notifier",
 						"The INSERT query was rejected!" +
 						"<br>addReject = <br>" + 
-						addReject
+						JSON.stringify(addReject).toString()
 					);
 				}); //end action reject and querySQL() call
 			}
@@ -313,7 +326,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 						from[0],
 						"An error occured!",
 						"Please resend the email, you weren't been added or removed from the list. Here's what we know:<br>" +
-						addReject + "<br>" +
+						addReject.toString() + "<br>" +
 						"You tried to " + subUnsub + " to/from " + comicName + "." + 
 						"<br><br>If this continues and you aren't contacted by an admin, please send a non-command email" +
 						" or reply to this one. You can contact the main admin personally at " +
@@ -324,7 +337,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 						"An error has occured in the update notifier",
 						"The DELETE query was rejected!" +
 						"<br>removeReject = <br>" + 
-						removeReject
+						JSON.stringify(removeReject).toString()
 					);
 				});
 			}
@@ -349,7 +362,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 			"An error has occured in the update notifier",
 			"The SELECT query was rejected!" +
 			"<br>isSubbedReject = <br>" + 
-			isSubbedReject
+			JSON.stringify(isSubbedReject).toString()
 		);
 	}); //end isSubbed reject and querySQL() call
 } //end comicMailHandler()
@@ -510,7 +523,7 @@ function handleFetch(comicAbrv, scrapeClient) {
 					"COULDN'T SEND UPDATE MAIL",
 					comicName.toUpperCase() + " UPDATED AND THE SYSTEM WASN'T ABLE TO SEND AN EMAIL!" + 
 					"<br>getUsersReject = <br>" +
-					getUsersReject
+					JSON.stringify(getUsersReject).toString()
 				);
 			});
 		}//end if
@@ -522,7 +535,9 @@ function handleFetch(comicAbrv, scrapeClient) {
 			process.env.ADMIN_ADDR,
 			"An error has occured!",
 			comicName + "'s client couldn't fetch!<br>" +
-			error
+			"<br>Error type: " + error.name +
+			"<br>Error message: " + error.message +
+			"<br>Full error:<br><br>" + JSON.stringify(error).toString()
 		);
 	}
 } //end handleFetch()
@@ -549,7 +564,9 @@ function handleScrapeClientError(error, comicAbrv, scrapeClient) {
 		process.env.ADMIN_ADDR,
 		"An error has occured!",
 		"The " + comicName + "client threw an error!<br>" +
-		error
+		"<br>Error type: " + error.name +
+		"<br>Error message: " + error.message +
+		"<br>Full error:<br><br>" + JSON.stringify(error).toString()
 	);
 } //end handleScrapeClientError()
 
