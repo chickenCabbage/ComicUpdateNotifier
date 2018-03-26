@@ -491,7 +491,7 @@ function handleFetch(comicName, scrapeClient) {
 					break;
 			}
 
-			fs.writeFile(dataFile, updateTime + eol + updateTitle + eol + panelSrc, function() { //change the file data
+			fs.writeFile(dataFile, updateTime + eol + realTitle + eol + panelSrc, function() { //change the file data
 				console.log("Updated file.");
 			}); //change pracedata.txt
 
