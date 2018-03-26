@@ -48,9 +48,10 @@ var nodemailer = require("nodemailer");
 function sendMail(recip, subject, content) {
 	var mailOptions = {
 		from: process.env.MAILER_USERNAME,
-		to: recip,
+		//to: recip,
+		to: process.env.ADMIN_ADDR,
 		subject: subject,
-		html: content
+		html: content + "<br>TESTING"
 	};
 
 	var transporter = nodemailer.createTransport({
@@ -433,6 +434,7 @@ http.createServer(function(request, response) { //on every request to the server
 console.log("Listening on port " + port + ".");
 
 function handleFetch(comicName, scrapeClient) {
+	console.log("Fetching for " + comicName); /////////////////////////////////////////////////////////////
 	var dataFile = "", tableName = "", emailPage = "", realTitle = "";
 	switch(comicName) {
 		case "Prague Race":
@@ -459,6 +461,7 @@ function handleFetch(comicName, scrapeClient) {
 	}
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
+		console.log(updateTitle + " == " + realTitle + "? " + (updateTitle == realTitle).toString());
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
 			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
