@@ -49,9 +49,9 @@ function sendMail(recip, subject, content) {
 	var mailOptions = {
 		from: process.env.MAILER_USERNAME,
 		//to: recip,
-		to: process.env.ADMIN_ADDR,
+		to: recip,
 		subject: subject,
-		html: content + "<br>TESTING"
+		html: content
 	};
 
 	var transporter = nodemailer.createTransport({
@@ -136,14 +136,19 @@ mailListener.on("mail", function(mail, seqno, attributes) {
 			subUnsub = subject.split(":")[0].toString().trim();
 		}
 		catch(error) { //catch #1
-			if(!error.name == "TypeError") { //if it's not an underfined send an error message, if it is then it's not in-format
+			//if the error wasn't caused by something being underfined send an error message,
+			//if it was then the subject is not in-format
+			if(!error.name == "TypeError") {
 				sendMail(
 					from[0],
 					"An error occured!",
 					"Please resend the email, you weren't been added or removed from the list. Here's what we know:<br>" +
 					error + "<br>" +
 					"<br>If this continues and you aren't contacted by an admin, please send a non-command email " +
-					"or reply to this one. You can contact the main admin personally at " + process.env.ADMIN_ADDR + "."
+					"or reply to this one. You can contact the main admin personally at " + process.env.ADMIN_ADDR + ".<br>" +
+					"<br>Please note this is still in development and fixes are still being made!" +
+					" Report errors and bugs " +
+					"<a href=\"https://github.com/chickenCabbage/ComicUpdateNotifier/issues\">here</a>."
 				);
 				sendMail(
 					process.env.ADMIN_ADDR,
@@ -161,7 +166,8 @@ mailListener.on("mail", function(mail, seqno, attributes) {
 			//non-understandabe action!
 			//if it's not a known command but it sounds like one:
 			//if it has "be" in the end or starts with "su" or "uns", and it's between 6 and 15 characters long
-			if((subUnsub.startsWith("su") || subUnsub.startsWith("uns") || subUnsub.endsWith("be")) && (subUnsub.length > 6 && subUnsub.length < 15))
+			if((subUnsub.startsWith("su") || subUnsub.startsWith("uns") || subUnsub.endsWith("be"))
+				&& (subUnsub.length > 6 && subUnsub.length < 15))
 				//then it's a typo!
 				sendMail( //send a general message
 					from[0],
@@ -192,7 +198,9 @@ mailListener.on("mail", function(mail, seqno, attributes) {
 			error + "<br>" +
 			"<br>If this continues and you aren't contacted by an admin, please send a non-command email" +
 			"or reply to this one. You can contact the main admin personally at " +
-			process.env.ADMIN_ADDR + "."
+			process.env.ADMIN_ADDR + ".<br><br>" +
+			"Please note this is still in development and fixes are still being made!" +
+			" Report errors and bugs <a href=\"https://github.com/chickenCabbage/ComicUpdateNotifier/issues\">here</a>."
 		);
 		sendMail(
 			process.env.ADMIN_ADDR,
@@ -242,7 +250,9 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 				", which doesn't match the known comics." +
 				"<br>You may have mis-spelled the comic name, " +
 				"but if you haven't and you'd like to request that it be added then send a non-command email" +
-				" and your request will be responded to as soon as possible."
+				" and your request will be responded to as soon as possible.<br><br>" + 
+				"Please note this is still in development and fixes are still being made!" +
+				" Report errors and bugs <a href=\"https://github.com/chickenCabbage/ComicUpdateNotifier/issues\">here</a>."
 			);
 			return;
 	} //end switch(comicsList[counter])
@@ -276,7 +286,10 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 						"You tried to " + subUnsub + " to/from " + comicName + "." + 
 						"<br><br>If this continues and you aren't contacted by an admin, please send a non-command email" +
 						" or reply to this one. You can contact the main admin personally at " +
-						process.env.ADMIN_ADDR + "."
+						process.env.ADMIN_ADDR + ".<br><br>" + 
+						"Please note this is still in development and fixes are still being made!" +
+						" Report errors and bugs" +
+						" <a href=\"https://github.com/chickenCabbage/ComicUpdateNotifier/issues\">here</a>."
 					);
 					sendMail(
 						process.env.ADMIN_ADDR,
@@ -434,7 +447,6 @@ http.createServer(function(request, response) { //on every request to the server
 console.log("Listening on port " + port + ".");
 
 function handleFetch(comicName, scrapeClient) {
-	console.log("Fetching for " + comicName); /////////////////////////////////////////////////////////////
 	var dataFile = "", tableName = "", emailPage = "", realTitle = "";
 	switch(comicName) {
 		case "Prague Race":
@@ -461,7 +473,6 @@ function handleFetch(comicName, scrapeClient) {
 	}
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
-		console.log(updateTitle + " == " + realTitle + "? " + (updateTitle == realTitle).toString());
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
 			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
@@ -595,7 +606,8 @@ setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
 	counter ++;
-	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) { //if you've gone for x minutes without a keepAlive() call
+	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) {
+	//if you've gone for x minutes without a keepAlive() call
 		counter = 0;
 		keepAlive();
 	}
