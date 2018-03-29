@@ -49,7 +49,7 @@ function sendMail(recip, subject, content) {
 	var mailOptions = {
 		from: process.env.MAILER_USERNAME,
 		//to: recip,
-		to: recip,
+		bcc: recip,
 		subject: subject,
 		html: content
 	};
