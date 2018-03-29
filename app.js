@@ -447,6 +447,8 @@ http.createServer(function(request, response) { //on every request to the server
 }).listen(port); //end http.createServer()
 console.log("Listening on port " + port + ".");
 
+var fetchCounter = 0; //flag signalling when init is done for the clients
+
 function handleFetch(comicName, scrapeClient) {
 	var dataFile = "", tableName = "", emailPage = "", realTitle = "";
 	switch(comicName) {
@@ -474,9 +476,9 @@ function handleFetch(comicName, scrapeClient) {
 	}
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
+		fetchCounter ++;
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
-			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
 
 			var updateTime = "", panelSrc = "", leppuComment = "";
 			switch(comicName) { //get each comic's data according to its site layout
@@ -507,6 +509,9 @@ function handleFetch(comicName, scrapeClient) {
 				console.log("Updated file.");
 			}); //change pracedata.txt
 
+			if(fetchCounter <= 3) return; //if it's still in init don't alert!
+
+			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
 			var cmd = "SELECT * FROM " + tableName + ";";
 			querySQL(cmd) //get all the people on the reading list
 			.then(function(getUsersResolve) {
