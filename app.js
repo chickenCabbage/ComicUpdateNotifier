@@ -1,6 +1,6 @@
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 0.5 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
@@ -422,6 +422,7 @@ http.createServer(function(request, response) { //on every request to the server
 		case "/tiger,%20tiger!":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
 			response.end(fs.readFileSync("./data/TigerTigerData.txt").toString()); //serve the requseted file
+			fs.writeFile("./data/TigerTigerData.txt", "tim" + eol + "titl" + eol + "src");
 			break;
 
 		case "/lepppusblog":
