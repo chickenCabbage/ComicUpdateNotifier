@@ -1,3 +1,5 @@
+console.log("Starting...");
+
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
 var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
@@ -88,8 +90,11 @@ var mailListener = new MailListener({
 	host: process.env.EMAIL_LISTENER_HOST,
 	port: process.env.EMAIL_IMAP_PORT,
 	tls: process.env.EMAIL_IMAP_TLS,
+	connTimeout: 600000, //600 seconds = 10 minutes, you ain't timing out notime soon
+	authTimeout: 10000, //10 seconds
 	mailbox: "INBOX",
-	markSeen: true
+	markSeen: true, //when you check an email mark it as seen
+	fetchUnreadOnStart: true //when you start get all the unread
 });
  
 mailListener.start(); //start listening 
@@ -100,8 +105,10 @@ mailListener.start(); //start listening
 mailListener.on("server:disconnected", function() {
 	console.log("Disconnected from email!");
 	mailListener.stop();
-	mailListener.start(); //reconnect
-	console.log("Restarted email connection.");
+	setTimeout(function() { //give the connection 5 seconds to close then open it again
+		MailListener.start();
+		console.log("Restarted connection to IMAP.");
+	}, 5000);
 });
 
 mailListener.on("mail", function(mail, seqno, attributes) {

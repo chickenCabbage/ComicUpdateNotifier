@@ -12,6 +12,7 @@
     "dependencies": {
         "colors": "^1.1.2",
         "dotenv": "latest",
+        "mail-listener-fixed": "^1.1.0",
         "mail-listener2": "^0.3.1",
         "mysql": "latest",
         "node-metainspector": "latest",
