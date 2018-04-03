@@ -6,25 +6,19 @@ var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
-var insp = require("node-metainspector");
-var pragueRaceClient = new insp("http://praguerace.com/", { //crawling config
+var crawlConfig = { //crawling config
 	timeout: 99999, //maximal reply time in ms. 99999 ~= 100 seconds, that's not going to happen anytime soon
 	headers: { //custom headers for the request
-		"User-Agent": "praceScraper/update.js" //user agent
+		"User-Agent": "update.js" //user agent
 	}
-});
-var tigerTigerClient = new insp("http://tigertigercomic.com/", {
-	timeout: 99999,
-	headers: {
-		"User-Agent": "tigerScraper/update.js"
-	}
-});
-var leppusBlogClient = new insp("http://leppucomics.com//", {
-	timeout: 99999,
-	headers: {
-		"User-Agent": "blogScraper/update.js"
-	}
-});
+}
+
+var uuidv1 = require("uuid/v1");
+var uuid = uuidv1();
+var insp = require("node-metainspector");
+var pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
+var tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
+var leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
 
 var mysql = require("mysql"); //MySQL API
 var con = mysql.createPool({
@@ -457,20 +451,22 @@ console.log("Listening on port " + port + ".");
 var fetchCounter = 0; //flag signalling when init is done for the clients
 
 function handleFetch(comicName, scrapeClient) {
-	var dataFile = "", tableName = "", emailPage = "", realTitle = "";
+	var dataFile = "", tableName = "", emailPage = "", realTitle = "", panelSrc = "";
 	switch(comicName) {
 		case "Prague Race":
 			dataFile = "./data/PragueRaceData.txt";
 			tableName = "PragueRaceReaders";
-			emailPage = "./emails/PragueRaceUpdateEmail.html"
-			realTitle = scrapeClient.title;
+			emailPage = "./emails/PragueRaceUpdateEmail.html";
+			panelSrc = scrapeClient.images[0];
+			realTitle = scrapeClient.parsedDocument("#cc-comic").toString().split("\"")[1].split("\"")[0];
 			break;
 
 		case "Tiger, Tiger":
 			dataFile = "./data/TigerTigerData.txt";
 			tableName = "TigerTigerReaders";
 			emailPage = "./emails/TigerTigerUpdateEmail.html";
-			realTitle = scrapeClient.title;
+			panelSrc = scrapeClient.images[1];
+			realTitle = scrapeClient.parsedDocument("#cc-comic").toString().split("\"")[1].split("\"")[0];
 			break;
 
 		case "Leppu's blog":
@@ -487,20 +483,18 @@ function handleFetch(comicName, scrapeClient) {
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
 
-			var updateTime = "", panelSrc = "", leppuComment = "";
+			var updateTime = "", leppuComment = "";
 			switch(comicName) { //get each comic's data according to its site layout
 				case "Prague Race":
 					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
 					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
 					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
-					panelSrc = scrapeClient.images[0];
 					break;
 
 				case "Tiger, Tiger":
 					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
 					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
 					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
-					panelSrc = scrapeClient.images[1];
 					break;
 
 				case "Leppu's blog":
@@ -615,6 +609,11 @@ leppusBlogClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
+	var uuid = uuidv1();
+	pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
+	tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
+	leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
+
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
