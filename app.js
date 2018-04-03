@@ -513,7 +513,7 @@ function handleFetch(comicName, scrapeClient) {
 			}
 
 			fs.writeFile(dataFile, updateTime + eol + realTitle + eol + panelSrc, function() { //change the file data
-				console.log("Updated file.");
+				console.log("Updated file: " + dataFile);
 			}); //change pracedata.txt
 
 			if(fetchCounter <= 3) return; //if it's still in init don't alert!
