@@ -612,11 +612,12 @@ function exitHandler(options, err) {
 	);
 }
 
-process.on('exit', exitHandler.bind(null, {exit: true, msg: "closed by an exit"}));
-process.on('SIGINT', exitHandler.bind(null, {exit: true, msg: "killed by a SIGINT"})); //catches ctrl+c event
+process.on("exit", exitHandler.bind(null, {exit: true, msg: "closed by an exit"}));
+process.on("SIGINT", exitHandler.bind(null, {exit: true, msg: "killed by a SIGINT"})); //catches ctrl+c event
 //catches "kill pid" (for example: nodemon restart):
-process.on('SIGUSR1', exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR1"}));
-process.on('SIGUSR2', exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR2"}));
+process.on("SIGUSR1", exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR1"}));
+process.on("SIGUSR2", exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR2"}));
+process.on("SIGTERM", exitHandler.bind(null, {exit: true, msg: "killed by a SIGTERM"}));
 process.on("uncaughtException", exitHandler.bind(null, {exit: true, msg: "murdered by an exception"})); //catches uncaught exceptions
 
 function keepAlive() {
