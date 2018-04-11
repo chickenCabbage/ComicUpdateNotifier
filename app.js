@@ -41,7 +41,7 @@ function querySQL(cmd, data) {
 } //end querySQL()
 
 var nodemailer = require("nodemailer");
-function sendMail(recip, subject, content) {
+function sendMail(recip, subject, content, lastBreath) {
 	var mailOptions = {
 		from: process.env.MAILER_USERNAME,
 		//to: recip,
@@ -59,6 +59,7 @@ function sendMail(recip, subject, content) {
 	});
 	transporter.sendMail(mailOptions, function(error, info){
 		if(error) {
+			lastBreath = false;
 			console.log("Error in mailing!");
 			console.log(error);
 			sendMail(
@@ -69,10 +70,14 @@ function sendMail(recip, subject, content) {
 				JSON.stringify(info).toString() + 
 				"<br><br>Error type: " + error.name +
 				"<br>Error message: " + error.message +
-				"<br>Full error:<br><br>" + JSON.stringify(error).toString()
+				"<br>Full error:<br><br>" + JSON.stringify(error).toString(),
+				true
 			);
 		}
 		else console.log("Email sent.");
+		if(lastBreath) {
+			process.exit(0);
+		}
 	});
 }//end sendMail()
 console.log("SMTP prepared as " + process.env.MAILER_USERNAME + ".");
@@ -594,6 +599,25 @@ if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's 
 	console.log("Checking at interval of " + (scrapeIntervalTime / 1000) + " seconds.");
 else  //otherwise it'll be larger/equal to 1
 	console.log("Checking for updates at interval of " + ((scrapeIntervalTime / 1000) / 60) + " minutes.");
+
+//process.stdin.resume();
+
+function exitHandler(options, err) {
+	console.log("Sending close message:");
+	sendMail(
+		process.env.ADMIN_ADDR,
+		"comic-updates closed",
+		"comic-updates was " + options.msg + ". It is recommended to check the logs for more details.",
+		true
+	);
+}
+
+process.on('exit', exitHandler.bind(null, {exit: true, msg: "closed by an exit"}));
+process.on('SIGINT', exitHandler.bind(null, {exit: true, msg: "killed by a SIGINT"})); //catches ctrl+c event
+//catches "kill pid" (for example: nodemon restart):
+process.on('SIGUSR1', exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR1"}));
+process.on('SIGUSR2', exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR2"}));
+process.on("uncaughtException", exitHandler.bind(null, {exit: true, msg: "murdered by an exception"})); //catches uncaught exceptions
 
 function keepAlive() {
 	var options = { //JSON config
