@@ -642,10 +642,11 @@ setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
-
+	console.log("fetching...");
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
+	console.log("fetched.");
 	counter ++;
 	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) {
 	//if you've gone for x minutes without a keepAlive() call
