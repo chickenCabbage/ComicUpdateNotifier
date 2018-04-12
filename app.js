@@ -485,6 +485,7 @@ function handleFetch(comicName, scrapeClient) {
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
 	}
+	console.log("src = " + panelSrc);
 	console.log("realTitle = " + realTitle);
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
