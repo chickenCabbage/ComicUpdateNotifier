@@ -583,23 +583,23 @@ function handleScrapeClientError(error, comicName, scrapeClient) {
 } //end handleScrapeClientError()
 
 pragueRaceClient.on("fetch", function() {
-	handleFetch("Prague Race", pragueRaceClient)
+	handleFetch("Prague Race", pragueRaceClient);
 });
 tigerTigerClient.on("fetch", function() {
-	handleFetch("Tiger, Tiger", tigerTigerClient)
+	handleFetch("Tiger, Tiger", tigerTigerClient);
 });
 leppusBlogClient.on("fetch", function() {
-	handleFetch("Leppu's blog", leppusBlogClient)
+	handleFetch("Leppu's blog", leppusBlogClient);
 });
 
 pragueRaceClient.on("error", function(error) {
-	handleScrapeClientError(error, "Prague Race", pragueRaceClient)
+	handleScrapeClientError(error, "Prague Race", pragueRaceClient);
 });
 tigerTigerClient.on("error", function(error) {
-	handleScrapeClientError(error, "Tiger, Tiger", tigerTigerClient)
+	handleScrapeClientError(error, "Tiger, Tiger", tigerTigerClient);
 });
 leppusBlogClient.on("error", function(error) {
-	handleScrapeClientError(error, "Leppu's blog", leppusBlogClient)
+	handleScrapeClientError(error, "Leppu's blog", leppusBlogClient);
 });
 
 if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's less than a minute
