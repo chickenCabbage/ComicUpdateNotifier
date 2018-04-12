@@ -2,7 +2,7 @@ console.log("Starting...");
 
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 1 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
@@ -484,12 +484,14 @@ function handleFetch(comicName, scrapeClient) {
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
 	}
+	console.log("Fetching for " + comicName);
+	console.log("realTitle = " + realTitle);
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
-		fetchCounter ++;
-		console.log("realTitle = " + realTitle);
 		console.log("updateTitle = " + updateTitle);
+		fetchCounter ++;
 		if(realTitle != updateTitle) { //if the title changed - new page!
+			console.log("UPDATE!");
 			updateTitle = realTitle;
 
 			var updateTime = "", leppuComment = "";
@@ -642,11 +644,9 @@ setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
-	console.log("fetching...");
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
-	console.log("fetched.");
 	counter ++;
 	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) {
 	//if you've gone for x minutes without a keepAlive() call
