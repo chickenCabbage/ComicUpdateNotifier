@@ -583,12 +583,15 @@ function handleScrapeClientError(error, comicName, scrapeClient) {
 } //end handleScrapeClientError()
 
 pragueRaceClient.on("fetch", function() {
+	console.log("what");
 	handleFetch("Prague Race", pragueRaceClient);
 });
 tigerTigerClient.on("fetch", function() {
+	console.log("the");
 	handleFetch("Tiger, Tiger", tigerTigerClient);
 });
 leppusBlogClient.on("fetch", function() {
+	console.log("fuck");
 	handleFetch("Leppu's blog", leppusBlogClient);
 });
 
