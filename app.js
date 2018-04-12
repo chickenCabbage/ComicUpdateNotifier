@@ -19,9 +19,6 @@ var insp = require("node-metainspector");
 var pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
 var tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
 var leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
-pragueRaceClient.on("fetch", function(){
-    console.log(pragueRaceClient.title);
-});
 
 var mysql = require("mysql"); //MySQL API
 var con = mysql.createPool({
@@ -421,8 +418,6 @@ http.createServer(function(request, response) { //on every request to the server
 		case "/prague%20race":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
 			response.end(fs.readFileSync("./data/PragueRaceData.txt").toString()); //serve the requseted file
-			fs.writeFile("./data/PragueRaceData.txt", "time" + eol + "title" + eol + "src");
-			console.log('changed for testing');
 			break;
 
 		case "/tigertiger":
@@ -461,15 +456,12 @@ console.log("Listening on port " + port + ".");
 var fetchCounter = 0; //flag signalling when init is done for the clients
 
 pragueRaceClient.on("fetch", function() {
-	console.log("what");
 	handleFetch("Prague Race", pragueRaceClient);
 });
 tigerTigerClient.on("fetch", function() {
-	console.log("the");
 	handleFetch("Tiger, Tiger", tigerTigerClient);
 });
 leppusBlogClient.on("fetch", function() {
-	console.log("fuck");
 	handleFetch("Leppu's blog", leppusBlogClient);
 });
 
@@ -491,7 +483,6 @@ else  //otherwise it'll be larger/equal to 1
 	console.log("Checking for updates at interval of " + ((scrapeIntervalTime / 1000) / 60) + " minutes.");
 
 function handleFetch(comicName, scrapeClient) {
-	console.log("Fetching for " + comicName);
 	var dataFile = "", tableName = "", emailPage = "", realTitle = "", panelSrc = "";
 	switch(comicName) {
 		case "Prague Race":
@@ -518,14 +509,10 @@ function handleFetch(comicName, scrapeClient) {
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
 	}
-	console.log("src = " + panelSrc);
-	console.log("realTitle = " + realTitle);
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
-		console.log("updateTitle = " + updateTitle);
 		fetchCounter ++;
 		if(realTitle != updateTitle) { //if the title changed - new page!
-			console.log("UPDATE!");
 			updateTitle = realTitle;
 
 			var updateTime = "", leppuComment = "";
@@ -568,6 +555,7 @@ function handleFetch(comicName, scrapeClient) {
 
 				sendMail(
 					allEmails.toString(),
+					//process.env.ADMIN_ADDR, /////////////////////////////////////////////////////////////////////////////////
 					comicName + " has just updated!",
 					fs.readFileSync(emailPage).toString()
 					.replace("TITLEME", updateTitle)
@@ -587,6 +575,11 @@ function handleFetch(comicName, scrapeClient) {
 				);
 			});
 		}//end if
+
+		var uuid = uuidv1();
+		pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
+		tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
+		leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	}//end try
 	catch(error) {
 		console.log(comicName + "'s client couldn't fetch!");
@@ -649,16 +642,10 @@ leppusBlogClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
-	console.log("looping")
-	/*var uuid = uuidv1();
-	console.log("uuid = " + uuid);
-	pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
-	tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
-	leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);*/
+	/**/
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
-	console.log("done fetching");
 	counter ++;
 	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) {
 	//if you've gone for x minutes without a keepAlive() call
