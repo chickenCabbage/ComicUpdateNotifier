@@ -419,6 +419,7 @@ http.createServer(function(request, response) { //on every request to the server
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
 			response.end(fs.readFileSync("./data/PragueRaceData.txt").toString()); //serve the requseted file
 			fs.writeFile("./data/PragueRaceData.txt", "time" + eol + "title" + eol + "src");
+			console.log('changed for testing');
 			break;
 
 		case "/tigertiger":
@@ -486,6 +487,8 @@ function handleFetch(comicName, scrapeClient) {
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
 		fetchCounter ++;
+		console.log("realTitle = " + realTitle);
+		console.log("updateTitle = " + updateTitle);
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
 
