@@ -457,6 +457,34 @@ console.log("Listening on port " + port + ".");
 
 var fetchCounter = 0; //flag signalling when init is done for the clients
 
+pragueRaceClient.on("fetch", function() {
+	console.log("what");
+	handleFetch("Prague Race", pragueRaceClient);
+});
+tigerTigerClient.on("fetch", function() {
+	console.log("the");
+	handleFetch("Tiger, Tiger", tigerTigerClient);
+});
+leppusBlogClient.on("fetch", function() {
+	console.log("fuck");
+	handleFetch("Leppu's blog", leppusBlogClient);
+});
+
+pragueRaceClient.on("error", function(error) {
+	handleScrapeClientError(error, "Prague Race", pragueRaceClient);
+});
+tigerTigerClient.on("error", function(error) {
+	handleScrapeClientError(error, "Tiger, Tiger", tigerTigerClient);
+});
+leppusBlogClient.on("error", function(error) {
+	handleScrapeClientError(error, "Leppu's blog", leppusBlogClient);
+});
+
+if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's less than a minute
+	console.log("Checking at interval of " + (scrapeIntervalTime / 1000) + " seconds.");
+else  //otherwise it'll be larger/equal to 1
+	console.log("Checking for updates at interval of " + ((scrapeIntervalTime / 1000) / 60) + " minutes.");
+
 function handleFetch(comicName, scrapeClient) {
 	console.log("Fetching for " + comicName);
 	var dataFile = "", tableName = "", emailPage = "", realTitle = "", panelSrc = "";
@@ -581,34 +609,6 @@ function handleScrapeClientError(error, comicName, scrapeClient) {
 		"<br>Full error:<br><br>" + JSON.stringify(error).toString()
 	);
 } //end handleScrapeClientError()
-
-pragueRaceClient.on("fetch", function() {
-	console.log("what");
-	handleFetch("Prague Race", pragueRaceClient);
-});
-tigerTigerClient.on("fetch", function() {
-	console.log("the");
-	handleFetch("Tiger, Tiger", tigerTigerClient);
-});
-leppusBlogClient.on("fetch", function() {
-	console.log("fuck");
-	handleFetch("Leppu's blog", leppusBlogClient);
-});
-
-pragueRaceClient.on("error", function(error) {
-	handleScrapeClientError(error, "Prague Race", pragueRaceClient);
-});
-tigerTigerClient.on("error", function(error) {
-	handleScrapeClientError(error, "Tiger, Tiger", tigerTigerClient);
-});
-leppusBlogClient.on("error", function(error) {
-	handleScrapeClientError(error, "Leppu's blog", leppusBlogClient);
-});
-
-if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's less than a minute
-	console.log("Checking at interval of " + (scrapeIntervalTime / 1000) + " seconds.");
-else  //otherwise it'll be larger/equal to 1
-	console.log("Checking for updates at interval of " + ((scrapeIntervalTime / 1000) / 60) + " minutes.");
 
 //process.stdin.resume();
 
