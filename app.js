@@ -458,6 +458,7 @@ console.log("Listening on port " + port + ".");
 var fetchCounter = 0; //flag signalling when init is done for the clients
 
 function handleFetch(comicName, scrapeClient) {
+	console.log("Fetching for " + comicName);
 	var dataFile = "", tableName = "", emailPage = "", realTitle = "", panelSrc = "";
 	switch(comicName) {
 		case "Prague Race":
@@ -484,7 +485,6 @@ function handleFetch(comicName, scrapeClient) {
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
 	}
-	console.log("Fetching for " + comicName);
 	console.log("realTitle = " + realTitle);
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
@@ -640,13 +640,16 @@ leppusBlogClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
+	console.log("looping")
 	var uuid = uuidv1();
+	console.log("uuid = " + uuid);
 	pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
+	console.log("done fetching");
 	counter ++;
 	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) {
 	//if you've gone for x minutes without a keepAlive() call
