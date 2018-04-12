@@ -19,6 +19,9 @@ var insp = require("node-metainspector");
 var pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
 var tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
 var leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
+pragueRaceClient.on("fetch", function(){
+    console.log(pragueRaceClient.title);
+});
 
 var mysql = require("mysql"); //MySQL API
 var con = mysql.createPool({
@@ -470,6 +473,8 @@ leppusBlogClient.on("fetch", function() {
 	handleFetch("Leppu's blog", leppusBlogClient);
 });
 
+
+
 pragueRaceClient.on("error", function(error) {
 	handleScrapeClientError(error, "Prague Race", pragueRaceClient);
 });
@@ -645,11 +650,11 @@ leppusBlogClient.fetch();
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	console.log("looping")
-	var uuid = uuidv1();
+	/*var uuid = uuidv1();
 	console.log("uuid = " + uuid);
 	pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
 	tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
-	leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
+	leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);*/
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
