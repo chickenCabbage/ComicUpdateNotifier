@@ -2,7 +2,7 @@ console.log("Starting...");
 
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 1 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
@@ -13,12 +13,10 @@ var crawlConfig = { //crawling config
 	}
 }
 
-var uuidv1 = require("uuid/v1");
-var uuid = uuidv1();
 var insp = require("node-metainspector");
-var pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
-var tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
-var leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
+var pragueRaceClient = new insp("http://praguerace.com");
+var tigerTigerClient = new insp("http://tigertigercomic.com");
+var leppusBlogClient = new insp("http://leppucomics.com");
 
 var mysql = require("mysql"); //MySQL API
 var con = mysql.createPool({
@@ -40,8 +38,17 @@ function querySQL(cmd, data) {
 	return dataPromise;
 } //end querySQL()
 
+var lastBreathStatus = 0; //you are already dead (nani??)
+//0 means not sent yet
+//1 means sending
+//2 means sent
+
 var nodemailer = require("nodemailer");
 function sendMail(recip, subject, content, lastBreath) {
+	if(lastBreathStatus == 1) { //if you're sending
+		return; //don't send another, thanks
+	}
+
 	var mailOptions = {
 		from: process.env.MAILER_USERNAME,
 		//to: recip,
@@ -57,7 +64,12 @@ function sendMail(recip, subject, content, lastBreath) {
 			"pass": process.env.EMAIL_PASSWORD
 		}
 	});
-	transporter.sendMail(mailOptions, function(error, info){
+
+	if(lastBreath && !lastBreathStatus) { //if you're sending a lastBreath now, and you haven't sent one yet
+		lastBreathStatus = 1;
+	}
+
+	transporter.sendMail(mailOptions, function(error, info) {
 		if(error) {
 			lastBreath = false;
 			console.log("Error in mailing!");
@@ -74,8 +86,13 @@ function sendMail(recip, subject, content, lastBreath) {
 				true
 			);
 		}
-		else console.log("Email sent.");
-		if(lastBreath) {
+		else {
+			console.log("Email sent.");
+			if(lastBreathStatus == 1 && lastBreath) { //if you just sent a lastBreath 
+				lastBreathStatus = 2;
+			}
+		}
+		if(lastBreath && lastBreathStatus == 2) { //if you're done
 			process.exit(0);
 		}
 	});
@@ -555,7 +572,7 @@ function handleFetch(comicName, scrapeClient) {
 
 				sendMail(
 					allEmails.toString(),
-					//process.env.ADMIN_ADDR, /////////////////////////////////////////////////////////////////////////////////
+					//process.env.ADMIN_ADDR, //// for testing ///// //// //// //// ////
 					comicName + " has just updated!",
 					fs.readFileSync(emailPage).toString()
 					.replace("TITLEME", updateTitle)
@@ -575,11 +592,9 @@ function handleFetch(comicName, scrapeClient) {
 				);
 			});
 		}//end if
-
-		var uuid = uuidv1();
-		pragueRaceClient = new insp("http://praguerace.com/?anti-cache-uuid=" + uuid, crawlConfig);
-		tigerTigerClient = new insp("http://tigertigercomic.com/?anti-cache-uuid=" + uuid, crawlConfig);
-		leppusBlogClient = new insp("http://leppucomics.com/?anti-cache-uuid=" + uuid, crawlConfig);
+		if(fetchCounter == 3) { //the last init fetch - next one is going to be a live-mails one
+			console.log("Client init complete.");
+		}
 	}//end try
 	catch(error) {
 		console.log(comicName + "'s client couldn't fetch!");
@@ -611,13 +626,19 @@ function handleScrapeClientError(error, comicName, scrapeClient) {
 //process.stdin.resume();
 
 function exitHandler(options, err) {
-	console.log("Sending close message:");
-	sendMail(
-		process.env.ADMIN_ADDR,
-		"comic-updates closed",
-		"comic-updates was " + options.msg + ". It is recommended to check the logs for more details.",
-		true
-	);
+	if(!lastBreathStatus) { //if you haven't sent one yet
+		console.log(); //just a line break for attention
+		//if there's an exit message, capitalize the first letter and log it:
+		if(options.msg) console.log(options.msg.toString().charAt(0).toUpperCase() + options.msg.toString().slice(1));
+		if(err) console.log(err); //if there was an error log it
+		console.log("Sending close message:");
+		sendMail(
+			process.env.ADMIN_ADDR,
+			"comic-updates closed",
+			"comic-updates was " + options.msg + ". It is recommended to check the logs for more details.",
+			true
+		);
+	}
 }
 
 process.on("exit", exitHandler.bind(null, {exit: true, msg: "closed by an exit"}));
@@ -642,10 +663,11 @@ leppusBlogClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
-	/**/
+
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
+	
 	counter ++;
 	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) {
 	//if you've gone for x minutes without a keepAlive() call
