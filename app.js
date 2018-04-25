@@ -112,7 +112,7 @@ var mailListener = new MailListener({
 	markSeen: true, //when you check an email mark it as seen
 	fetchUnreadOnStart: true //when you start get all the unread
 });
- 
+
 mailListener.start(); //start listening 
 
  mailListener.on("server:connected", function() {
@@ -122,7 +122,7 @@ mailListener.on("server:disconnected", function() {
 	console.log("Disconnected from email!");
 	mailListener.stop();
 	setTimeout(function() { //give the connection 5 seconds to close then open it again
-		MailListener.start();
+		mailListener.start(); //start listening 
 		console.log("Restarted connection to IMAP.");
 	}, 5000);
 });
@@ -435,6 +435,7 @@ http.createServer(function(request, response) { //on every request to the server
 		case "/prague%20race":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
 			response.end(fs.readFileSync("./data/PragueRaceData.txt").toString()); //serve the requseted file
+			mailListener.stop();
 			break;
 
 		case "/tigertiger":
