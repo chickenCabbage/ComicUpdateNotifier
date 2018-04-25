@@ -435,7 +435,6 @@ http.createServer(function(request, response) { //on every request to the server
 		case "/prague%20race":
 			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
 			response.end(fs.readFileSync("./data/PragueRaceData.txt").toString()); //serve the requseted file
-			mailListener.stop();
 			break;
 
 		case "/tigertiger":
