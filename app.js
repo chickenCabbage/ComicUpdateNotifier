@@ -7,7 +7,7 @@ var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
 var crawlConfig = { //crawling config
-	timeout: 99999, //maximal reply time in ms. 99999 ~= 100 seconds, that's not going to happen anytime soon
+	timeout: 999999, //maximal reply time in ms. 999999 ~= 1000 seconds, that's not going to happen anytime soon
 	headers: { //custom headers for the request
 		"User-Agent": "update.js" //user agent
 	}
