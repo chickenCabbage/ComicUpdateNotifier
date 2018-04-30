@@ -613,14 +613,19 @@ function handleFetch(comicName, scrapeClient) {
 function handleScrapeClientError(error, comicName, scrapeClient) {
 	console.log(comicName + "'s client threw an error!");
 	console.log(error);
-	sendMail(
-		process.env.ADMIN_ADDR,
-		"An error has occured!",
-		"The " + comicName + "client threw an error!<br>" +
-		"<br>Error type: " + error.name +
-		"<br>Error message: " + error.message +
-		"<br>Full error:<br><br>" + JSON.stringify(error).toString()
-	);
+	if(error.name.toString() != "ETIMEDOUT") { //fuck your timeout alerts
+		sendMail(
+			process.env.ADMIN_ADDR,
+			"An error has occured!",
+			"The " + comicName + "client threw an error!<br>" +
+			"<br>Error type: " + error.name +
+			"<br>Error message: " + error.message +
+			"<br>Full error:<br><br>" + JSON.stringify(error).toString()
+		);
+	}
+	else { //treat timeout alerts though
+		scrapeClient.fetch(); //retry that
+	}
 } //end handleScrapeClientError()
 
 //process.stdin.resume();
