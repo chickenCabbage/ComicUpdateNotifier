@@ -17,6 +17,8 @@ var insp = require("node-metainspector");
 var pragueRaceClient = new insp("http://praguerace.com");
 var tigerTigerClient = new insp("http://tigertigercomic.com");
 var leppusBlogClient = new insp("http://leppucomics.com");
+var namesakeClient = new insp("http://www.namesakecomic.com");
+var scrapeClientAmnt = 4; //one-up this every time another comic is added
 
 var mysql = require("mysql"); //MySQL API
 var con = mysql.createPool({
@@ -239,7 +241,8 @@ mailListener.on("mail", function(mail, seqno, attributes) {
 function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 	var comicTable = ""; //the table that the user is going to be inserted into or removed from
 	var comicName = "";
-	switch(comicsList[counter].toString().trim()) { //understand which comic it is
+	console.log(comicsList[counter].toString().trim());
+	switch(comicsList[counter].toString().trim().toLowerCase()) { //understand which comic it is
 		case "prague race":
 		case "praguerace":
 		case "prace":
@@ -264,6 +267,10 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 			comicTable = "LeppusBlogReaders";
 			comicName = "Leppu's blog";
 			break;
+
+		case "namesake":
+			comicTable = "NamesakeReaders";
+			comicName = "Namesake";
 
 		default:
 			sendMail(
@@ -455,6 +462,11 @@ http.createServer(function(request, response) { //on every request to the server
 			response.end(fs.readFileSync("./data/LeppusBlogData.txt").toString()); //serve the requseted file
 			break;
 
+		case "/namesake":
+			response.writeHead(200, {"Content-Type": "text/plain", "Access-Control-Allow-Origin": "*"});
+			response.end(fs.readFileSync("./data/NamesakeData.txt").toString()); //serve the requseted file
+			break;
+
 		default:
 			try {
 				response.writeHead(200, {"Content-Type": "text/html", "Access-Control-Allow-Origin": "*"});
@@ -481,8 +493,9 @@ tigerTigerClient.on("fetch", function() {
 leppusBlogClient.on("fetch", function() {
 	handleFetch("Leppu's blog", leppusBlogClient);
 });
-
-
+namesakeClient.on("fetch", function() {
+	handleFetch("Namesake", namesakeClient);
+});
 
 pragueRaceClient.on("error", function(error) {
 	handleScrapeClientError(error, "Prague Race", pragueRaceClient);
@@ -493,6 +506,9 @@ tigerTigerClient.on("error", function(error) {
 leppusBlogClient.on("error", function(error) {
 	handleScrapeClientError(error, "Leppu's blog", leppusBlogClient);
 });
+namesakeClient.on("error", function(error) {
+	handleScrapeClientError(error, "Namesake", namesakeClient);
+});
 
 if(((scrapeIntervalTime / 1000) / 60) > 1)  //it will return a fraction if it's less than a minute
 	console.log("Checking at interval of " + (scrapeIntervalTime / 1000) + " seconds.");
@@ -500,13 +516,12 @@ else  //otherwise it'll be larger/equal to 1
 	console.log("Checking for updates at interval of " + ((scrapeIntervalTime / 1000) / 60) + " minutes.");
 
 function handleFetch(comicName, scrapeClient) {
-	var dataFile = "", tableName = "", emailPage = "", realTitle = "", panelSrc = "";
+	var dataFile = "", tableName = "", emailPage = "", realTitle = "";
 	switch(comicName) {
 		case "Prague Race":
 			dataFile = "./data/PragueRaceData.txt";
 			tableName = "PragueRaceReaders";
 			emailPage = "./emails/PragueRaceUpdateEmail.html";
-			panelSrc = scrapeClient.images[0];
 			realTitle = scrapeClient.parsedDocument("#cc-comic").toString().split("\"")[1].split("\"")[0];
 			break;
 
@@ -514,7 +529,6 @@ function handleFetch(comicName, scrapeClient) {
 			dataFile = "./data/TigerTigerData.txt";
 			tableName = "TigerTigerReaders";
 			emailPage = "./emails/TigerTigerUpdateEmail.html";
-			panelSrc = scrapeClient.images[1];
 			realTitle = scrapeClient.parsedDocument("#cc-comic").toString().split("\"")[1].split("\"")[0];
 			break;
 
@@ -525,6 +539,14 @@ function handleFetch(comicName, scrapeClient) {
 			realTitle = scrapeClient.parsedDocument(".cc-blogtitle").html();
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
+
+		case "Namesake":
+			dataFile = "./data/NamesakeData.txt";
+			tableName = "NamesakeReaders";
+			emailPage = "./emails/NamesakeUpdateEmail";
+			realTitle = scrapeClient.parsedDocument(".cc-newsheader").html();
+			realTitle = realTitle.split(">")[1].split("<")[0].trim();
+			break;
 	}
 	try {
 		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
@@ -532,26 +554,35 @@ function handleFetch(comicName, scrapeClient) {
 		if(realTitle != updateTitle) { //if the title changed - new page!
 			updateTitle = realTitle;
 
-			var updateTime = "", leppuComment = "";
+			var updateTime = "", extraData = "", panelSrc = "";
 			switch(comicName) { //get each comic's data according to its site layout
 				case "Prague Race":
 					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
 					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
 					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
+					panelSrc = scrapeClient.images[0];
 					break;
 
 				case "Tiger, Tiger":
 					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
 					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
 					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
+					panelSrc = scrapeClient.images[1];
 					break;
 
 				case "Leppu's blog":
-					leppuComment = scrapeClient.parsedDocument(".cc-blogcontent").html();
-					leppuComment = leppuComment.split("<br>");
-					leppuComment = leppuComment[leppuComment.length - 1];
+					extraData = scrapeClient.parsedDocument(".cc-blogcontent").html();
+					extraData = extraData.split("<br>");
+					extraData = extraData[extraData.length - 1];
 					panelSrc = scrapeClient.images[6];
-					updateTime = leppuComment;
+					updateTime = extraData;
+					break;
+
+				case "Namesake":
+					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html();
+					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
+					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
+					panelSrc = "http://namesakecomic.com/images/header.png"; //copyright, placeholder
 					break;
 			}
 
@@ -559,7 +590,7 @@ function handleFetch(comicName, scrapeClient) {
 				console.log("Updated file: " + dataFile);
 			}); //change pracedata.txt
 
-			if(fetchCounter <= 3) return; //if it's still in init don't alert!
+			if(fetchCounter <= scrapeClientAmnt) return; //if it's still in init don't alert!
 
 			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
 			var cmd = "SELECT * FROM " + tableName + ";";
@@ -592,7 +623,7 @@ function handleFetch(comicName, scrapeClient) {
 				);
 			});
 		}//end if
-		if(fetchCounter == 3) { //the last init fetch - next one is going to be a live-mails one
+		if(fetchCounter == scrapeClientAmnt) { //the last init fetch - next one is going to be a live-mails one
 			console.log("Client init complete.");
 		}
 	}//end try
@@ -613,6 +644,7 @@ function handleFetch(comicName, scrapeClient) {
 function handleScrapeClientError(error, comicName, scrapeClient) {
 	console.log(comicName + "'s client threw an error!");
 	console.log(error);
+	console.log(error.name.toString());
 	if(error.name.toString() != "ETIMEDOUT") { //fuck your timeout alerts
 		sendMail(
 			process.env.ADMIN_ADDR,
@@ -627,8 +659,6 @@ function handleScrapeClientError(error, comicName, scrapeClient) {
 		scrapeClient.fetch(); //retry that
 	}
 } //end handleScrapeClientError()
-
-//process.stdin.resume();
 
 function exitHandler(options, err) {
 	if(!lastBreathStatus) { //if you haven't sent one yet
@@ -665,6 +695,7 @@ function keepAlive() {
 pragueRaceClient.fetch(); //initialization
 tigerTigerClient.fetch();
 leppusBlogClient.fetch();
+namesakeClient.fetch();
 
 var counter = 0;
 setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
@@ -672,6 +703,7 @@ setInterval(function() { //do this every [scrapeIntervalTime] miliseconds
 	pragueRaceClient.fetch();
 	tigerTigerClient.fetch();
 	leppusBlogClient.fetch();
+	namesakeClient.fetch();
 	
 	counter ++;
 	if(counter * (scrapeIntervalTime / (60 * 1000)) > process.env.KEEP_ALIVE_TIME) {
