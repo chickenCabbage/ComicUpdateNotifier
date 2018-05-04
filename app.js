@@ -2,7 +2,7 @@ console.log("Starting...");
 
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 0.25 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
@@ -241,7 +241,6 @@ mailListener.on("mail", function(mail, seqno, attributes) {
 function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 	var comicTable = ""; //the table that the user is going to be inserted into or removed from
 	var comicName = "";
-	console.log(comicsList[counter].toString().trim());
 	switch(comicsList[counter].toString().trim().toLowerCase()) { //understand which comic it is
 		case "prague race":
 		case "praguerace":
@@ -271,6 +270,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 		case "namesake":
 			comicTable = "NamesakeReaders";
 			comicName = "Namesake";
+		break;
 
 		default:
 			sendMail(
@@ -543,7 +543,7 @@ function handleFetch(comicName, scrapeClient) {
 		case "Namesake":
 			dataFile = "./data/NamesakeData.txt";
 			tableName = "NamesakeReaders";
-			emailPage = "./emails/NamesakeUpdateEmail";
+			emailPage = "./emails/NamesakeUpdateEmail.html";
 			realTitle = scrapeClient.parsedDocument(".cc-newsheader").html();
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
