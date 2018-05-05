@@ -2,7 +2,7 @@ console.log("Starting...");
 
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 0.25 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
