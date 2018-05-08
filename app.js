@@ -236,7 +236,7 @@ mailListener.on("mail", function(mail, seqno, attributes) {
 			"<br>Full error:<br><br>" + JSON.stringify(error).toString()
 		);
 	}
-}); //end mailListener.on("mail")
+}); //end mailListener.on("mail", function() {})
 
 function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 	var comicTable = ""; //the table that the user is going to be inserted into or removed from
@@ -329,7 +329,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 						JSON.stringify(addReject).toString()
 					);
 				}); //end action reject and querySQL() call
-			}
+			} //end if(subUnsub == "subscribe")
 			else { //if they're tring to unsubscribe
 				console.log(from[0] + " tried to unsubscribe from " + comicName + ", but wasn't subscribed.");
 				sendMail(
@@ -383,9 +383,9 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 						"<br>removeReject = <br>" + 
 						JSON.stringify(removeReject).toString()
 					);
-				});
-			}
-		}
+				}); //end else for promise catch
+			} //end else for if(subUnsub == "subscribe")
+		} //end else for if(isSubbedResolve.length == 0)
 	}) //end isSubbed resolve
 	.catch(function(isSubbedReject) { //if the query fails
 		console.log("An error occured during the check!");
