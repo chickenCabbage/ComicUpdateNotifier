@@ -1,8 +1,9 @@
+'use strict'
 console.log("Starting...");
 
 require("dotenv").config({path: "../heroku-deploy.env"}); //environment vars
 
-var scrapeIntervalTime = 2 * 60 * 1000; //two minutes, the interval between each checks
+var scrapeIntervalTime = 0.1 * 60 * 1000; //two minutes, the interval between each checks
 var eol = require("os").EOL; //local system's end of line character
 var fs = require("fs"); //file IO
 
@@ -256,7 +257,7 @@ function comicMailHandler(counter, comicsList, mail, from, subject, subUnsub) {
 		case "tigertiger":
 		case "tt":
 			comicTable = "TigerTigerReaders";
-			comicName = "Tiger, Tiger";
+			comicName = "Tiger Tiger";
 			break;
 
 		case "leppuAPOSTROPHEs blog": //looks funny, is actually just "leppu's blog"
@@ -488,7 +489,7 @@ pragueRaceClient.on("fetch", function() {
 	handleFetch("Prague Race", pragueRaceClient);
 });
 tigerTigerClient.on("fetch", function() {
-	handleFetch("Tiger, Tiger", tigerTigerClient);
+	handleFetch("Tiger Tiger", tigerTigerClient);
 });
 leppusBlogClient.on("fetch", function() {
 	handleFetch("Leppu's blog", leppusBlogClient);
@@ -501,7 +502,7 @@ pragueRaceClient.on("error", function(error) {
 	handleScrapeClientError(error, "Prague Race", pragueRaceClient);
 });
 tigerTigerClient.on("error", function(error) {
-	handleScrapeClientError(error, "Tiger, Tiger", tigerTigerClient);
+	handleScrapeClientError(error, "Tiger Tiger", tigerTigerClient);
 });
 leppusBlogClient.on("error", function(error) {
 	handleScrapeClientError(error, "Leppu's blog", leppusBlogClient);
@@ -516,19 +517,28 @@ else  //otherwise it'll be larger/equal to 1
 	console.log("Checking for updates at interval of " + ((scrapeIntervalTime / 1000) / 60) + " minutes.");
 
 function handleFetch(comicName, scrapeClient) {
-	var dataFile = "", tableName = "", emailPage = "", realTitle = "";
+	var dataFile = "", tableName = "", emailPage = "", realTitle = "", comicLink = "";
+	querySQL("SELECT title, readersTable FROM comics WHERE name = ?;", comicName)
+	.then(function(titleResolve) {
+
+	})
+	.catch(function(titleReject) {
+		
+	});
 	switch(comicName) {
 		case "Prague Race":
 			dataFile = "./data/PragueRaceData.txt";
 			tableName = "PragueRaceReaders";
-			emailPage = "./emails/PragueRaceUpdateEmail.html";
+			emailPage = "./update.html";
+			comicLink = "http://praguerace.com/";
 			realTitle = scrapeClient.parsedDocument("#cc-comic").toString().split("\"")[1].split("\"")[0];
 			break;
 
-		case "Tiger, Tiger":
+		case "Tiger Tiger":
 			dataFile = "./data/TigerTigerData.txt";
 			tableName = "TigerTigerReaders";
 			emailPage = "./emails/TigerTigerUpdateEmail.html";
+			comicLink = "http://tigertigercomic.com/";
 			realTitle = scrapeClient.parsedDocument("#cc-comic").toString().split("\"")[1].split("\"")[0];
 			break;
 
@@ -536,6 +546,7 @@ function handleFetch(comicName, scrapeClient) {
 			dataFile = "./data/LeppusBlogData.txt";
 			tableName = "LeppusBlogReaders";
 			emailPage = "./emails/LeppusBlogUpdateEmail.html";
+			comicLink = "http://leppucomics.com/";
 			realTitle = scrapeClient.parsedDocument(".cc-blogtitle").html();
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
@@ -544,71 +555,88 @@ function handleFetch(comicName, scrapeClient) {
 			dataFile = "./data/NamesakeData.txt";
 			tableName = "NamesakeReaders";
 			emailPage = "./emails/NamesakeUpdateEmail.html";
+			comicLink = "http://www.namesakecomic.com/";
 			realTitle = scrapeClient.parsedDocument(".cc-newsheader").html();
 			realTitle = realTitle.split(">")[1].split("<")[0].trim();
 			break;
 	}
 	try {
-		var updateTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
+		var knownTitle = fs.readFileSync(dataFile).toString().split(eol)[1].trim(); //read the current data
 		fetchCounter ++;
-		if(realTitle != updateTitle) { //if the title changed - new page!
-			updateTitle = realTitle;
+		if(realTitle != knownTitle) { //if the title changed - new page!
+			knownTitle = realTitle;
 
-			var updateTime = "", extraData = "", panelSrc = "";
+			var data1 = "", extraData = "", data2 = "";
 			switch(comicName) { //get each comic's data according to its site layout
 				case "Prague Race":
-					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
-					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
-					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
-					panelSrc = scrapeClient.images[0];
+					data1 = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
+					data1 = data1.split("Posted ")[1] + " EST"; //remove excess HTML/data
+					data1 = data1.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
+					data2 = scrapeClient.images[0];
 					break;
 
-				case "Tiger, Tiger":
-					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
-					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
-					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
-					panelSrc = scrapeClient.images[1];
+				case "Tiger Tiger":
+					data1 = scrapeClient.parsedDocument(".cc-publishtime").html(); //the div content
+					data1 = data1.split("Posted ")[1] + " EST"; //remove excess HTML/data
+					data1 = data1.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
+					data2 = scrapeClient.images[1];
 					break;
 
 				case "Leppu's blog":
 					extraData = scrapeClient.parsedDocument(".cc-blogcontent").html();
 					extraData = extraData.split("<br>");
 					extraData = extraData[extraData.length - 1];
-					panelSrc = scrapeClient.images[6];
-					updateTime = extraData;
+					data2 = scrapeClient.images[6];
+					data1 = extraData;
 					break;
 
 				case "Namesake":
-					updateTime = scrapeClient.parsedDocument(".cc-publishtime").html();
-					updateTime = updateTime.split("Posted ")[1] + " EST"; //remove excess HTML/data
-					updateTime = updateTime.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
-					panelSrc = "http://namesakecomic.com/images/header.png"; //copyright, placeholder
+					data1 = scrapeClient.parsedDocument(".cc-publishtime").html();
+					data1 = data1.split("Posted ")[1] + " EST"; //remove excess HTML/data
+					data1 = data1.toString().replace("pm", "PM").toString().replace("am", "AM").toString();
+					data2 = "http://namesakecomic.com/images/header.png"; //copyright, placeholder
 					break;
 			}
 
-			fs.writeFile(dataFile, updateTime + eol + realTitle + eol + panelSrc, function() { //change the file data
+			fs.writeFile(dataFile, data1 + eol + realTitle + eol + data2, function() { //change the file data
 				console.log("Updated file: " + dataFile);
 			}); //change pracedata.txt
+			//update the MySQL table
+			querySQL("UPDATE comics SET title = \"" + realTitle + "\", data1 = \"" + data1 + "\", data2 = \"" + data2 + "\""
+				+ "WHERE name = \"" + comicName + "\";")
+			.then(function(updateResolve) {
+				console.log("Updated MySQL update data for " + comicName + ".");
+			})
+			.catch(function(updateReject) {
+				console.log("MySQL update rejected!");
+				console.log(updateReject);
+				sendMail(
+					process.env.ADMIN_ADDR,
+					"COULDN'T UPDATE THE COMIC MySQL",
+					comicName.toUpperCase() + " UPDATED AND THE SYSTEM WASN'T ABLE TO UPDATE THE TABLE!" + 
+					"<br>updateReject = <br>" +
+					JSON.stringify(updateReject).toString()
+				);
+			});
 
 			if(fetchCounter <= scrapeClientAmnt) return; //if it's still in init don't alert!
 
-			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + updateTitle); //woo
+			console.log("\n" + comicName.toUpperCase() + " UPDATED! " + knownTitle); //woo
 			var cmd = "SELECT * FROM " + tableName + ";";
 			querySQL(cmd) //get all the people on the reading list
 			.then(function(getUsersResolve) {
 				var allEmails = [];
-				for(i = 0; i < getUsersResolve.length; i ++) { //for every row in the table
+				for(var i = 0; i < getUsersResolve.length; i ++) { //for every row in the table
 					allEmails[i] = getUsersResolve[i].email;
 				}
 
 				sendMail(
 					allEmails.toString(),
-					//process.env.ADMIN_ADDR, //// for testing ///// //// //// //// ////
+					//process.env.ADMIN_ADDR, //// for testing ///// //// //// //// //// ///// //// //// //// //// //// //// ////
 					comicName + " has just updated!",
 					fs.readFileSync(emailPage).toString()
-					.replace("TITLEME", updateTitle)
-					.replace("TIMEME", updateTime)
-					.replace("SRCME", panelSrc)
+					.replace("COMICNAME", comicName)
+					.replace("LINKME", comicLink)
 				);
 			})
 			.catch(function(getUsersReject) { //catch for SELECT
@@ -677,11 +705,11 @@ function exitHandler(options, err) {
 }
 
 process.on("exit", exitHandler.bind(null, {exit: true, msg: "closed by an exit"}));
-process.on("SIGINT", exitHandler.bind(null, {exit: true, msg: "killed by a SIGINT"})); //catches ctrl+c event
+//process.on("SIGINT", exitHandler.bind(null, {exit: true, msg: "killed by a SIGINT"})); //catches ctrl+c event
 //catches "kill pid" (for example: nodemon restart):
 process.on("SIGUSR1", exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR1"}));
 process.on("SIGUSR2", exitHandler.bind(null, {exit: true, msg: "killed by a SIGUSR2"}));
-process.on("SIGTERM", exitHandler.bind(null, {exit: true, msg: "killed by a SIGTERM"}));
+//process.on("SIGTERM", exitHandler.bind(null, {exit: true, msg: "killed by a SIGTERM"})); //sent lots of reports with dyno cycles
 process.on("uncaughtException", exitHandler.bind(null, {exit: true, msg: "murdered by an exception"})); //catches uncaught exceptions
 
 function keepAlive() {
